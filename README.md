@@ -117,3 +117,22 @@ Las rutas anteriores son el plan de organización, no una afirmación de que los
 ## Seguridad y limitaciones
 
 No publicar contraseñas, PSK, claves SNMP, archivos Vault reales, tokens, hashes de autenticación, claves privadas ni imágenes Cisco. Revisar también exportaciones EVE-NG y Zabbix y capturas de terminal. El portal usa autenticación y túnel SSH; es una aplicación de laboratorio con indicadores estáticos y operaciones específicas de R7. La baja lógica conserva acceso administrativo y no revoca individualmente la PSK compartida. El enunciado menciona OSPF en detalles de diseño, pero BGP en entregables y aceptación; se implementó BGP. La implementación no cumple todavía el requisito de hubs sin cambios por sitio para IPv6, ni se ha demostrado FVRF.
+
+
+
+## Acceso remoto mediante Tailscale
+
+Se implementó un servidor Ubuntu como Subnet Router
+de Tailscale para permitir el acceso remoto a la
+infraestructura SDN-DMVPN desarrollada en EVE-NG.
+
+### Documentación y configuración
+
+- [Documentación principal de Tailscale](tailscale/README.md)
+- [Script de instalación](tailscale/instalacion.sh)
+- [Configuración del gateway](tailscale/configuracion.md)
+- [Configuración de Netplan](tailscale/configuraciones/netplan.yaml)
+- [Configuración IP Forwarding](tailscale/configuraciones/99-tailscale.conf)
+- [Configuración Subnet Router](tailscale/configuraciones/enrutamiento.sh)
+
+Subred anunciada: 172.16.0.0/24.
