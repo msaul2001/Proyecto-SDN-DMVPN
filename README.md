@@ -1,33 +1,68 @@
-[README.md](https://github.com/user-attachments/files/35128302/README.md)
+
 # Proyecto SDN — DMVPN Dual Hub
 
-Proyecto académico de Software Defined Networking: infraestructura de sucursales redundante, cifrada, automatizada y monitoreada.
+## Descripción del proyecto
+
+Proyecto académico de Software Defined Networking (SDN)
+orientado a implementar una infraestructura de sucursales
+redundante, cifrada, automatizada y monitoreada.
+
+La solución integra DMVPN Dual Hub, IKEv2/IPsec, BGP,
+IPv4/IPv6, Ansible, Zabbix, Tailscale y un portal web
+de administración desarrollado en Flask.
+
+## Tecnologías utilizadas
+
+| Tecnología | Función |
+|---|---|
+| EVE-NG | Virtualización de infraestructura |
+| Cisco IOL 15.7 | Enrutamiento |
+| DMVPN | Conectividad entre sucursales |
+| IKEv2/IPsec | Cifrado de comunicaciones |
+| BGP | Enrutamiento dinámico IPv4 e IPv6 |
+| Ansible | Automatización de configuraciones |
+| Flask | Portal de administración |
+| Zabbix 7.0 | Monitoreo de infraestructura |
+| SNMPv3 | Recolección segura de métricas |
+| Tailscale | Acceso remoto al laboratorio |
+| Ubuntu Server | Plataforma de servicios |
 
 ## Arquitectura
 
 ```mermaid
 graph TD
- P[Portal Flask] --> A[Ansible]
- A --> N[Underlay IPv4 / Net]
- Z[Zabbix SNMPv3] --> N
- N --> R1[ R1 Hub primario ]
- N --> R2[ R2 Hub secundario ]
- R1 --- R3[R3 Mazatenango]
- R1 --- R4[R4 Suchitepéquez]
- R1 --- R5[R5 Zacapa]
- R1 --- R6[R6 Retalhuleu]
- R2 --- R3
- R2 --- R4
- R2 --- R5
- R2 --- R6
- R7[R7 Nueva sede - baja lógica] -. alta Ansible .-> N
+    P[Portal Flask] --> A[Ansible]
+    A --> N[Underlay IPv4]
+    Z[Zabbix SNMPv3] --> N
+    T[Tailscale VPN] --> G[gw-tailscale]
+    G --> N
+    N --> R1[R1 Hub primario]
+    N --> R2[R2 Hub secundario]
+    R1 --- R3[R3 Mazatenango]
+    R1 --- R4[R4 Suchitepéquez]
+    R1 --- R5[R5 Zacapa]
+    R1 --- R6[R6 Retalhuleu]
+    R2 --- R3
+    R2 --- R4
+    R2 --- R5
+    R2 --- R6
+    R7[R7 Nueva sede - Baja lógica] -. Alta Ansible .-> N
 ```
 
-EVE-NG con Cisco IOL 15.7, DMVPN sobre mGRE/NHRP, IKEv2/IPsec en modo transporte, iBGP AS 65000 y LAN dual stack. El controlador Ansible y Zabbix se ejecutan en Ubuntu; Tailscale proporciona acceso remoto mediante un gateway de subred. El portal Flask utiliza los playbooks existentes.
+La infraestructura utiliza DMVPN sobre mGRE/NHRP,
+IKEv2/IPsec en modo transporte, iBGP AS 65000
+y redes LAN dual stack.
+
+El acceso remoto se realiza mediante un gateway
+Tailscale configurado como Subnet Router.
 
 ## Direccionamiento
 
-Underlay: 172.16.0.0/24. Loopbacks: 10.254.0.s/32. LAN IPv4: 10.(24+s).0.0/24. LAN IPv6: 2001:824:s::/64.
+- Underlay: 172.16.0.0/24
+- Loopbacks: 10.254.0.s/32
+- LAN IPv4: 10.(24+s).0.0/24
+- LAN IPv6: 2001:824:s::/64
+- Sistema autónomo BGP: 65000
 
 | Router | Rol | Underlay | LAN IPv4 | LAN IPv6 |
 |---|---|---|---|---|
@@ -39,53 +74,184 @@ Underlay: 172.16.0.0/24. Loopbacks: 10.254.0.s/32. LAN IPv4: 10.(24+s).0.0/24. L
 | R6 | Retalhuleu | 172.16.0.6 | 10.30.0.0/24 | 2001:824:6::/64 |
 | R7 | Nueva sede | 172.16.0.7 | 10.31.0.0/24 | 2001:824:7::/64 |
 
-Overlay primario: 10.255.1.0/24 y 2001:824:101::/64 (Tunnel0). Secundario: 10.255.2.0/24 y 2001:824:102::/64 (Tunnel1). R7 permanece dado de baja para la demostración.
+### Redes Overlay
 
-## Matriz de cumplimiento y pruebas
-
-Estado preliminar basado en las pruebas realizadas; la incorporación de archivos y evidencias al repositorio está pendiente.
-
-| Requisito | Estado | Implementación / evidencia a incorporar |
+| Túnel | IPv4 | IPv6 |
 |---|---|---|
-| IKEv2/IPsec | Validado | R7: asociaciones READY con ambos hubs y cuatro spokes tras generar tráfico |
-| DMVPN Dual Hub | Validado | show dmvpn; cuatro spokes originales, cinco tras el alta |
-| BGP IPv4/IPv6 | Validado con limitación | 8 sesiones por familia en los hubs; IPv4 dinámico, IPv6 requiere actualización de vecinos en hubs |
-| Spoke a spoke | Parcial | Asociaciones directas observadas; falta adjuntar traceroute de aceptación |
-| Failover ≤45 s | Pendiente de evidencia cuantitativa | Failover indicado como realizado; adjuntar medición y logs |
-| MTU 1400 con DF | Pendiente de evidencia | Prueba de ping extendido |
-| IPv6 | Validado entre interfaces LAN | R7 a R3–R6; R3 a R7; adjuntar pruebas de PCs si corresponde |
-| Idempotencia alta changed=0 | Pendiente | Segunda ejecución real sin cambios; simulación no demuestra idempotencia |
-| Baja de sitio | Parcial | Baja de R7 validada: sin BGP, túneles ni rutas LAN, SSH conservado; falta IPAM y baja automática Zabbix |
-| Sitio sorpresa | Parcial | Portal limitado a R7; simulación web validada; alta real web reservada para demostración |
-| IPAM persistente | Pendiente | Portal actual sin asignación dinámica ni base de datos IPAM |
-| Alta/baja Zabbix por API | Pendiente | Seis routers registrados y monitoreados; falta integración community.zabbix |
+| Tunnel0 | 10.255.1.0/24 | 2001:824:101::/64 |
+| Tunnel1 | 10.255.2.0/24 | 2001:824:102::/64 |
 
-## Automatización
+R7 permanece en estado de baja lógica para
+la demostración del proceso de alta automatizada.
 
-Playbooks originales a incorporar: `alta_sucursal.yml`, `baja_sucursal.yml`, `backup_routers.yml`. Plantillas Jinja2 de configuración base e IPsec. Inventario R1–R7. Ansible Vault protege la PSK localmente. El portal ofrece alta, baja, simulación, validación, respaldo y guardado. La simulación desde el navegador y la consulta de R7 fueron probadas; el alta y baja reales se probaron por CLI.
+## Estructura del repositorio
 
-Comandos desde el directorio operativo `~/ansible-sdn`:
+| Recurso | Contenido |
+|---|---|
+| [ansible/](ansible/) | Inventario, playbooks y plantillas |
+| [eveng/](eveng/) | Laboratorio de EVE-NG |
+| [routers/](routers/) | Configuraciones Cisco |
+| [tailscale/](tailscale/) | Acceso remoto y configuración VPN |
+| [webapp/](webapp/) | Portal Flask |
+| [zabbix/](zabbix/) | Monitoreo y configuración |
+| [INSTALACION.md](INSTALACION.md) | Guía de instalación |
+| [requirements.txt](requirements.txt) | Dependencias Python |
+
+## Instalación
+
+La guía de instalación y preparación del entorno
+se encuentra disponible en:
+
+[Guía de instalación del proyecto](INSTALACION.md)
+
+## Automatización mediante Ansible
+
+La automatización utiliza inventario de routers R1–R7,
+plantillas Jinja2 y playbooks para administrar
+las configuraciones de la infraestructura.
+
+Playbooks principales:
+
+- alta_sucursal.yml
+- baja_sucursal.yml
+- backup_routers.yml
+
+Ansible Vault protege localmente la PSK utilizada
+para el establecimiento de conexiones IPsec.
+
+### Comandos de administración
+
+Desde el directorio operativo ~/ansible-sdn:
 
 ```bash
 source venv/bin/activate
 ansible-inventory --graph
+```
+
+Simulación de alta:
+
+```bash
 ansible-playbook playbooks/alta_sucursal.yml --ask-pass --ask-vault-pass --check -f 1
+```
+
+Alta de sucursal:
+
+```bash
 ansible-playbook playbooks/alta_sucursal.yml --ask-pass --ask-vault-pass -f 1
+```
+
+Baja de sucursal:
+
+```bash
 ansible-playbook playbooks/baja_sucursal.yml --ask-pass -f 1
 ```
 
-Los dos últimos modifican la infraestructura. Ejecutarlos únicamente con autorización y respaldos previos. No se incluye el Vault real ni credenciales.
+Las operaciones de alta y baja modifican la
+infraestructura y requieren autorización
+y respaldos previos.
 
-## Monitoreo
+## Portal web
 
-Zabbix 7.0, SNMPv3 authPriv, plantilla Cisco IOS by SNMP. Dashboard de disponibilidad, CPU, memoria, latencia, pérdida, tráfico, estado DMVPN, BGP IPv4/IPv6 e IPsec. Mapa con indicadores BGP para ambos hubs. 22 triggers personalizados: 8 BGP IPv4, 8 BGP IPv6 y 6 IPsec.
+El portal desarrollado en Flask centraliza
+las operaciones de administración de la red.
 
-OID principales:
-- BGP IPv4: `1.3.6.1.2.1.15.3.1.2`.
-- BGP IPv6 (tabla de vecinos multiprotocolo): `1.3.6.1.4.1.9.9.187.1.2.5.1.3`.
-- IPsec activos: `1.3.6.1.4.1.9.9.171.1.3.1.1.0`.
+Funciones disponibles:
 
-BGP Established = 6. IPsec: mínimo orientativo 4 por hub, 2 por spoke; el conteo no identifica cada peer. Los indicadores muestran últimos valores, no disponibilidad instantánea. CPU 0% observado en IOL requiere validación adicional. El acceso SNMP se realiza por underlay mediante Tailscale, no mediante una FVRF demostrada.
+- Alta de sucursal.
+- Baja de sucursal.
+- Simulación de configuraciones.
+- Validación del estado.
+- Respaldo de configuraciones.
+- Guardado de configuraciones.
+
+La simulación desde el navegador y la consulta
+de R7 fueron validadas. Las operaciones reales
+de alta y baja fueron probadas mediante CLI.
+
+El portal administra específicamente R7 y utiliza
+los playbooks existentes de Ansible.
+
+## Monitoreo mediante Zabbix
+
+Se implementó Zabbix 7.0 utilizando SNMPv3 authPriv
+y la plantilla Cisco IOS by SNMP.
+
+El monitoreo incluye disponibilidad, CPU, memoria,
+latencia, pérdida de paquetes, tráfico, DMVPN,
+BGP IPv4/IPv6 e IPsec.
+
+Se configuraron 22 triggers personalizados:
+
+- 8 triggers BGP IPv4.
+- 8 triggers BGP IPv6.
+- 6 triggers IPsec.
+
+### OID utilizados
+
+| Indicador | OID |
+|---|---|
+| BGP IPv4 | 1.3.6.1.2.1.15.3.1.2 |
+| BGP IPv6 | 1.3.6.1.4.1.9.9.187.1.2.5.1.3 |
+| IPsec activos | 1.3.6.1.4.1.9.9.171.1.3.1.1.0 |
+
+El estado BGP Established corresponde al valor 6.
+
+Para IPsec se considera un mínimo orientativo
+de cuatro asociaciones por hub y dos por spoke.
+Este conteo no identifica individualmente cada peer.
+
+Los indicadores representan los últimos valores
+recolectados. La lectura de CPU de 0% en Cisco IOL
+requiere validación adicional.
+
+El acceso SNMP se realiza mediante la red underlay
+utilizando Tailscale.
+
+## Acceso remoto mediante Tailscale
+
+Se implementó un servidor Ubuntu denominado
+gw-tailscale como Subnet Router para proporcionar
+acceso remoto a la infraestructura EVE-NG.
+
+| Parámetro | Configuración |
+|---|---|
+| Servidor | gw-tailscale |
+| Versión Tailscale | 1.104.6 |
+| Interfaz externa | ens33 - DHCP |
+| Interfaz interna | ens34 |
+| IP interna | 172.16.0.10/24 |
+| Subred anunciada | 172.16.0.0/24 |
+| IP Forwarding | Habilitado |
+| SNAT | Habilitado |
+
+### Documentación de Tailscale
+
+- [README de Tailscale](tailscale/README.md)
+- [Script de instalación](tailscale/instalacion.sh)
+- [Configuración del gateway](tailscale/configuracion.md)
+- [Netplan](tailscale/configuraciones/netplan.yaml)
+- [IP Forwarding](tailscale/configuraciones/99-tailscale.conf)
+- [Subnet Router](tailscale/configuraciones/enrutamiento.sh)
+
+## Matriz de cumplimiento
+
+La siguiente matriz presenta el estado documentado
+de los requisitos técnicos del proyecto.
+
+| Requisito | Estado | Resultado |
+|---|---|---|
+| IKEv2/IPsec | Validado | Asociaciones establecidas con hubs y spokes |
+| DMVPN Dual Hub | Validado | Cuatro spokes originales y cinco tras alta de R7 |
+| BGP IPv4/IPv6 | Validado con limitaciones | IPv6 requiere actualizar vecinos en hubs |
+| Spoke a spoke | Parcial | Asociaciones directas observadas |
+| Failover <=45 segundos | Pendiente de evidencia | Sin medición cuantitativa documentada |
+| MTU 1400 con DF | Pendiente de evidencia | Sin resultado documentado |
+| IPv6 | Validado entre interfaces LAN | Comunicación R7 y R3–R6 |
+| Idempotencia Ansible | Pendiente | Segunda ejecución real no documentada |
+| Baja de sitio | Parcial | Baja lógica de R7 validada |
+| Sitio sorpresa | Parcial | Simulación web y alta mediante CLI |
+| IPAM persistente | Pendiente | Sin base de datos IPAM |
+| Alta/baja Zabbix por API | Pendiente | Seis routers registrados manualmente |
 
 ## Comandos de verificación Cisco
 
@@ -101,38 +267,36 @@ show ip route bgp
 show ipv6 route bgp
 ```
 
-## Estructura prevista del repositorio
+## Seguridad
 
-- `ansible/`: inventario, playbooks, plantillas y variables de ejemplo.
-- `webapp/`: código Flask y frontend (mantener junto al proyecto Ansible al desplegar).
-- `routers/`: configuraciones sanitizadas.
-- `eveng/`: laboratorio exportado y sanitizado.
-- `zabbix/`: exportaciones y procedimientos de monitoreo.
-- `tailscale/`: configuración y scripts sin credenciales.
-- `documentacion/`: informe y guía de demostración.
-- `evidencias/`: capturas y resultados sin secretos.
+Los archivos del repositorio deben mantenerse
+libres de credenciales, contraseñas, PSK reales,
+tokens, llaves privadas y archivos Vault reales.
 
-Las rutas anteriores son el plan de organización, no una afirmación de que los archivos ya están publicados.
+El portal utiliza autenticación y acceso
+remoto mediante túnel SSH.
 
-## Seguridad y limitaciones
+La baja lógica de una sucursal conserva
+el acceso administrativo y no revoca
+individualmente la PSK compartida.
 
-No publicar contraseñas, PSK, claves SNMP, archivos Vault reales, tokens, hashes de autenticación, claves privadas ni imágenes Cisco. Revisar también exportaciones EVE-NG y Zabbix y capturas de terminal. El portal usa autenticación y túnel SSH; es una aplicación de laboratorio con indicadores estáticos y operaciones específicas de R7. La baja lógica conserva acceso administrativo y no revoca individualmente la PSK compartida. El enunciado menciona OSPF en detalles de diseño, pero BGP en entregables y aceptación; se implementó BGP. La implementación no cumple todavía el requisito de hubs sin cambios por sitio para IPv6, ni se ha demostrado FVRF.
+## Limitaciones de la implementación
 
+- El proyecto utiliza BGP como protocolo de
+  enrutamiento dinámico.
+- IPv6 requiere actualizar los vecinos BGP
+  de los hubs al incorporar una nueva sede.
+- No se ha demostrado una implementación FVRF.
+- El portal corresponde a un entorno académico
+  con operaciones específicas para R7.
+- Los indicadores del portal son estáticos.
 
+## Conclusión
 
-## Acceso remoto mediante Tailscale
+El proyecto integra tecnologías de redes,
+seguridad, automatización, monitoreo y acceso
+remoto dentro de una infraestructura virtualizada.
 
-Se implementó un servidor Ubuntu como Subnet Router
-de Tailscale para permitir el acceso remoto a la
-infraestructura SDN-DMVPN desarrollada en EVE-NG.
-
-### Documentación y configuración
-
-- [Documentación principal de Tailscale](tailscale/README.md)
-- [Script de instalación](tailscale/instalacion.sh)
-- [Configuración del gateway](tailscale/configuracion.md)
-- [Configuración de Netplan](tailscale/configuraciones/netplan.yaml)
-- [Configuración IP Forwarding](tailscale/configuraciones/99-tailscale.conf)
-- [Configuración Subnet Router](tailscale/configuraciones/enrutamiento.sh)
-
-Subred anunciada: 172.16.0.0/24.
+La organización del repositorio permite consultar
+los componentes de manera independiente y facilita
+la reproducción y evaluación de la implementación.
