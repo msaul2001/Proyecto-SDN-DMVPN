@@ -1,0 +1,444 @@
+zabbix_export:
+  version: '7.0'
+  host_groups:
+    - uuid: 5e89cb47324b4b3bbf287c6a9e46d2d8
+      name: SDN-Routers
+  hosts:
+    - host: R1.sdn.lab
+      name: 'R1 - Guatemala HUB1'
+      templates:
+        - name: 'Cisco IOS by SNMP'
+      groups:
+        - name: SDN-Routers
+      interfaces:
+        - type: SNMP
+          ip: 172.16.0.1
+          port: '161'
+          details:
+            version: SNMPV3
+            securityname: zabbix
+            securitylevel: AUTHPRIV
+            authprotocol: SHA1
+            authpassphrase: "{$SNMP_AUTH_PASSPHRASE}"
+            privprotocol: AES128
+            privpassphrase: "{$SNMP_PRIV_PASSPHRASE}"
+          interface_ref: if1
+      items:
+        - name: 'BGP IPv6 - R3 Mazatenango'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.187.1.2.5.1.3.2.16.32.1.8.36.1.1.0.0.0.0.0.0.0.0.0.3
+          key: 'bgp.ipv6.peer.state[3]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R1.sdn.lab/bgp.ipv6.peer.state[3])<>6 or nodata(/R1.sdn.lab/bgp.ipv6.peer.state[3],2m)=1'
+              name: 'BGP IPv6 - R1 hacia R3 DOWN'
+              event_name: 'BGP IPv6 - Sesión R1-R3 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+              description: |
+                Monitoreo de la sesión BGP IPv6 entre R1 y R3.
+                Genera una alerta cuando la sesión pierde el estado
+                Established o no se reciben datos SNMP durante 2 minutos.
+        - name: 'BGP IPv6 - R4 Suchitepequez'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.187.1.2.5.1.3.2.16.32.1.8.36.1.1.0.0.0.0.0.0.0.0.0.4
+          key: 'bgp.ipv6.peer.state[4]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R1.sdn.lab/bgp.ipv6.peer.state[4])<>6 or nodata(/R1.sdn.lab/bgp.ipv6.peer.state[4],2m)=1'
+              name: 'BGP IPv6 - R1 hacia R4 DOWN'
+              event_name: 'BGP IPv6 - Sesión R1-R4 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'BGP IPv6 - R5 Zacapa'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.187.1.2.5.1.3.2.16.32.1.8.36.1.1.0.0.0.0.0.0.0.0.0.5
+          key: 'bgp.ipv6.peer.state[5]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R1.sdn.lab/bgp.ipv6.peer.state[5])<>6 or nodata(/R1.sdn.lab/bgp.ipv6.peer.state[5],2m)=1'
+              name: 'BGP IPv6 - R1 hacia R5 DOWN'
+              event_name: 'BGP IPv6 - Sesión R1-R5 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'BGP IPv6 - R6 Retalhuleu'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.187.1.2.5.1.3.2.16.32.1.8.36.1.1.0.0.0.0.0.0.0.0.0.6
+          key: 'bgp.ipv6.peer.state[6]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R1.sdn.lab/bgp.ipv6.peer.state[6])<>6 or nodata(/R1.sdn.lab/bgp.ipv6.peer.state[6],2m)=1'
+              name: 'BGP IPv6 - R1 hacia R6 DOWN'
+              event_name: 'BGP IPv6 - Sesión R1-R6 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'BGP IPv4 - R3 Mazatenango'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.15.3.1.2.10.255.1.3
+          key: 'bgp.peer.state[10.255.1.3]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R1.sdn.lab/bgp.peer.state[10.255.1.3])<>6'
+              name: 'BGP IPv4 - R1 hacia R3 DOWN'
+              event_name: 'BGP IPv4 - Sesión R1-R3 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'BGP IPv4 - R4 Suchitepequez'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.15.3.1.2.10.255.1.4
+          key: 'bgp.peer.state[10.255.1.4]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R1.sdn.lab/bgp.peer.state[10.255.1.4])<>6'
+              name: 'BGP IPv4 - R1 hacia R4 DOWN'
+              event_name: 'BGP IPv4 - Sesión R1-R4 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'BGP IPv4 - R5 Zacapa'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.15.3.1.2.10.255.1.5
+          key: 'bgp.peer.state[10.255.1.5]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R1.sdn.lab/bgp.peer.state[10.255.1.5])<>6'
+              name: 'BGP IPv4 - R1 hacia R5 DOWN'
+              event_name: 'BGP IPv4 - Sesión R1-R5 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'BGP IPv4 - R6 Retalhuleu'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.15.3.1.2.10.255.1.6
+          key: 'bgp.peer.state[10.255.1.6]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R1.sdn.lab/bgp.peer.state[10.255.1.6])<>6'
+              name: 'BGP IPv4 - R1 hacia R6 DOWN'
+              event_name: 'BGP IPv4 - Sesión R1-R6 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'IPsec - Tuneles activos'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.171.1.3.1.1.0
+          key: ipsec.tunnels.active
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R1.sdn.lab/ipsec.tunnels.active)<4 or nodata(/R1.sdn.lab/ipsec.tunnels.active,2m)=1'
+              name: 'IPsec - R1 Tuneles insuficientes'
+              event_name: 'IPsec - R1 perdida de tuneles activos'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+      inventory_mode: DISABLED
+    - host: R2.sdn.lab
+      name: 'R2 - Guatemala HUB2'
+      templates:
+        - name: 'Cisco IOS by SNMP'
+      groups:
+        - name: SDN-Routers
+      interfaces:
+        - type: SNMP
+          ip: 172.16.0.2
+          port: '161'
+          details:
+            version: SNMPV3
+            securityname: zabbix
+            securitylevel: AUTHPRIV
+            authprotocol: SHA1
+            authpassphrase: "{$SNMP_AUTH_PASSPHRASE}"
+            privprotocol: AES128
+            privpassphrase: "{$SNMP_PRIV_PASSPHRASE}"
+          interface_ref: if1
+      items:
+        - name: 'BGP IPv6 - R3 Mazatenango'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.187.1.2.5.1.3.2.16.32.1.8.36.1.2.0.0.0.0.0.0.0.0.0.3
+          key: 'bgp.ipv6.peer.state[3]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R2.sdn.lab/bgp.ipv6.peer.state[3])<>6 or nodata(/R2.sdn.lab/bgp.ipv6.peer.state[3],2m)=1'
+              name: 'BGP IPv6 - R2 hacia R3 DOWN'
+              event_name: 'BGP IPv6 - Sesión R2-R3 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'BGP IPv6 - R4 Suchitepequez'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.187.1.2.5.1.3.2.16.32.1.8.36.1.2.0.0.0.0.0.0.0.0.0.4
+          key: 'bgp.ipv6.peer.state[4]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R2.sdn.lab/bgp.ipv6.peer.state[4])<>6 or nodata(/R2.sdn.lab/bgp.ipv6.peer.state[4],2m)=1'
+              name: 'BGP IPv6 - R2 hacia R4 DOWN'
+              event_name: 'BGP IPv6 - Sesión R2-R4 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'BGP IPv6 - R5 Zacapa'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.187.1.2.5.1.3.2.16.32.1.8.36.1.2.0.0.0.0.0.0.0.0.0.5
+          key: 'bgp.ipv6.peer.state[5]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R2.sdn.lab/bgp.ipv6.peer.state[5])<>6 or nodata(/R2.sdn.lab/bgp.ipv6.peer.state[5],2m)=1'
+              name: 'BGP IPv6 - R2 hacia R5 DOWN'
+              event_name: 'BGP IPv6 - Sesión R2-R5 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'BGP IPv6 - R6 Retalhuleu'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.187.1.2.5.1.3.2.16.32.1.8.36.1.2.0.0.0.0.0.0.0.0.0.6
+          key: 'bgp.ipv6.peer.state[6]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R2.sdn.lab/bgp.ipv6.peer.state[6])<>6 or nodata(/R2.sdn.lab/bgp.ipv6.peer.state[6],2m)=1'
+              name: 'BGP IPv6 - R2 hacia R6 DOWN'
+              event_name: 'BGP IPv6 - Sesión R2-R6 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'BGP IPv4 - R3 Mazatenango'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.15.3.1.2.10.255.2.3
+          key: 'bgp.peer.state[10.255.2.3]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R2.sdn.lab/bgp.peer.state[10.255.2.3])<>6'
+              name: 'BGP IPv4 - R2 hacia R3 DOWN'
+              event_name: 'BGP IPv4 - Sesión R2-R3 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'BGP IPv4 - R4 Suchitepequez'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.15.3.1.2.10.255.2.4
+          key: 'bgp.peer.state[10.255.2.4]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R2.sdn.lab/bgp.peer.state[10.255.2.4])<>6'
+              name: 'BGP IPv4 - R2 hacia R4 DOWN'
+              event_name: 'BGP IPv4 - Sesión R2-R4 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'BGP IPv4 - R5 Zacapa'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.15.3.1.2.10.255.2.5
+          key: 'bgp.peer.state[10.255.2.5]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R2.sdn.lab/bgp.peer.state[10.255.2.5])<>6'
+              name: 'BGP IPv4 - R2 hacia R5 DOWN'
+              event_name: 'BGP IPv4 - Sesión R2-R5 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'BGP IPv4 - R6 Retalhuleu'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.15.3.1.2.10.255.2.6
+          key: 'bgp.peer.state[10.255.2.6]'
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R2.sdn.lab/bgp.peer.state[10.255.2.6])<>6'
+              name: 'BGP IPv4 - R2 hacia R6 DOWN'
+              event_name: 'BGP IPv4 - Sesión R2-R6 no establecida'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+        - name: 'IPsec - Tuneles activos'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.171.1.3.1.1.0
+          key: ipsec.tunnels.active
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R2.sdn.lab/ipsec.tunnels.active)<4 or nodata(/R2.sdn.lab/ipsec.tunnels.active,2m)=1'
+              name: 'IPsec - R2 Tuneles insuficientes'
+              event_name: 'IPsec - R2 perdida de tuneles activos'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+      inventory_mode: DISABLED
+    - host: R3.sdn.lab
+      name: 'R3 - Mazate HUB3'
+      templates:
+        - name: 'Cisco IOS by SNMP'
+      groups:
+        - name: SDN-Routers
+      interfaces:
+        - type: SNMP
+          ip: 172.16.0.3
+          port: '161'
+          details:
+            version: SNMPV3
+            securityname: zabbix
+            securitylevel: AUTHPRIV
+            authprotocol: SHA1
+            authpassphrase: "{$SNMP_AUTH_PASSPHRASE}"
+            privprotocol: AES128
+            privpassphrase: "{$SNMP_PRIV_PASSPHRASE}"
+          interface_ref: if1
+      items:
+        - name: 'IPsec - Tuneles activos'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.171.1.3.1.1.0
+          key: ipsec.tunnels.active
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R3.sdn.lab/ipsec.tunnels.active)<2 or nodata(/R3.sdn.lab/ipsec.tunnels.active,2m)=1'
+              name: 'IPsec - R3 Tuneles insuficientes'
+              event_name: 'IPsec - R3 perdida de tuneles activos'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+      inventory_mode: DISABLED
+    - host: R4.sdn.lab
+      name: 'R4 - Suchi HUB4'
+      templates:
+        - name: 'Cisco IOS by SNMP'
+      groups:
+        - name: SDN-Routers
+      interfaces:
+        - type: SNMP
+          ip: 172.16.0.4
+          port: '161'
+          details:
+            version: SNMPV3
+            securityname: zabbix
+            securitylevel: AUTHPRIV
+            authprotocol: SHA1
+            authpassphrase: "{$SNMP_AUTH_PASSPHRASE}"
+            privprotocol: AES128
+            privpassphrase: "{$SNMP_PRIV_PASSPHRASE}"
+          interface_ref: if1
+      items:
+        - name: 'IPsec - Tuneles activos'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.171.1.3.1.1.0
+          key: ipsec.tunnels.active
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R4.sdn.lab/ipsec.tunnels.active)<2 or nodata(/R4.sdn.lab/ipsec.tunnels.active,2m)=1'
+              name: 'IPsec - R4 Tuneles insuficientes'
+              event_name: 'IPsec - R4 perdida de tuneles activos'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+      inventory_mode: DISABLED
+    - host: R5.sdn.lab
+      name: 'R5 - Zacapa HUB5'
+      templates:
+        - name: 'Cisco IOS by SNMP'
+      groups:
+        - name: SDN-Routers
+      interfaces:
+        - type: SNMP
+          ip: 172.16.0.5
+          port: '161'
+          details:
+            version: SNMPV3
+            securityname: zabbix
+            securitylevel: AUTHPRIV
+            authprotocol: SHA1
+            authpassphrase: "{$SNMP_AUTH_PASSPHRASE}"
+            privprotocol: AES128
+            privpassphrase: "{$SNMP_PRIV_PASSPHRASE}"
+          interface_ref: if1
+      items:
+        - name: 'IPsec - Tuneles activos'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.171.1.3.1.1.0
+          key: ipsec.tunnels.active
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R5.sdn.lab/ipsec.tunnels.active)<2 or nodata(/R5.sdn.lab/ipsec.tunnels.active,2m)=1'
+              name: 'IPsec - R5 Tuneles insuficientes'
+              event_name: 'IPsec - R5 perdida de tuneles activos'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+      inventory_mode: DISABLED
+    - host: R6.sdn.lab
+      name: 'R6 - Reu HUB6'
+      templates:
+        - name: 'Cisco IOS by SNMP'
+      groups:
+        - name: SDN-Routers
+      interfaces:
+        - type: SNMP
+          ip: 172.16.0.6
+          port: '161'
+          details:
+            version: SNMPV3
+            securityname: zabbix
+            securitylevel: AUTHPRIV
+            authprotocol: SHA1
+            authpassphrase: "{$SNMP_AUTH_PASSPHRASE}"
+            privprotocol: AES128
+            privpassphrase: "{$SNMP_PRIV_PASSPHRASE}"
+          interface_ref: if1
+      items:
+        - name: 'IPsec - Tuneles activos'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.9.9.171.1.3.1.1.0
+          key: ipsec.tunnels.active
+          delay: 30s
+          history: 7d
+          trends: '0'
+          interface_ref: if1
+          triggers:
+            - expression: 'last(/R6.sdn.lab/ipsec.tunnels.active)<2 or nodata(/R6.sdn.lab/ipsec.tunnels.active,2m)=1'
+              name: 'IPsec - R6 Tuneles insuficientes'
+              event_name: 'IPsec - R6 perdida de tuneles activos'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: HIGH
+      inventory_mode: DISABLED
