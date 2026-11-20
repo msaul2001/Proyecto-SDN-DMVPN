@@ -1,53 +1,80 @@
-# Instalacion del proyecto SDN
 
-## 1. Entorno Python
+## 8. Instalación y configuración de Tailscale
 
-Desde la raiz del repositorio:
+Para proporcionar acceso remoto a la infraestructura
+SDN-DMVPN implementada en EVE-NG, se utiliza un servidor
+Ubuntu denominado gw-tailscale, configurado como Subnet Router.
 
-    python3 -m venv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
+### 8.1. Requisitos
 
-## 2. Colecciones Ansible
+- Ubuntu Server.
+- Dos interfaces de red.
+- Acceso a Internet.
+- Cuenta autorizada en Tailscale.
+- Acceso a la red underlay de EVE-NG.
 
-    ansible-galaxy collection install -r ansible/requirements.yml
+### 8.2. Configuración de red
 
-## 3. Configurar Ansible Vault
+| Interfaz | Direccionamiento | Función |
+|---|---|---|
+| ens33 | DHCP | Acceso a Internet |
+| ens34 | 172.16.0.10/24 | Conexión con EVE-NG |
+| tailscale0 | Asignado por Tailscale | Acceso remoto VPN |
 
-    cd ansible
-    ansible-vault create vars/vault.yml
+### 8.3. Instalación
 
-Utilizar vault.example.yml como referencia.
-La clave IPsec debe coincidir con la configurada
-en los routers del laboratorio.
+La instalación de Tailscale se realiza mediante
+el siguiente script:
 
-## 4. Validar inventario
+[instalacion.sh](tailscale/instalacion.sh)
 
-Desde la carpeta ansible:
+Desde la raíz del repositorio, ejecutar:
 
-    ansible-inventory --graph
+    bash tailscale/instalacion.sh
 
-## 5. Simular alta de R7
+Durante la instalación se debe autenticar el servidor
+dentro de la Tailnet correspondiente.
 
-    ansible-playbook playbooks/alta_sucursal.yml --ask-pass --ask-vault-pass --check -f 1
+### 8.4. Configuración del gateway
 
-## 6. Configurar el portal
+Configurar las interfaces de red utilizando como
+referencia el archivo:
 
-Regresar a la raiz del repositorio:
+[netplan.yaml](tailscale/configuraciones/netplan.yaml)
 
-    cd ..
-    python webapp/setup_auth.py
-    python webapp/app.py
+Habilitar el reenvío de paquetes IPv4 y configurar
+el servidor como Subnet Router mediante:
 
-El portal escucha en 127.0.0.1:5000.
-Para acceder remotamente utilizar un tunel SSH.
+    bash tailscale/configuraciones/enrutamiento.sh
 
-## 7. Consideraciones
+La subred anunciada corresponde a 172.16.0.0/24,
+utilizada por los routers Cisco del proyecto.
 
-- Se requiere conectividad hacia los routers.
-- Se requiere acceso SSH con privilegio 15.
-- Las claves reales no se incluyen en Git.
-- Los playbooks actuales administran especificamente R7.
-- Los indicadores del portal son estaticos.
-- El registro de hosts en Zabbix se realiza por separado.
-- El portal corresponde a una implementacion de laboratorio.
+El script mantiene SNAT habilitado y permite que
+Tailscale administre automáticamente las reglas
+de NAT y forwarding.
+
+### 8.5. Aprobación de la subred
+
+1. Ingresar a la consola administrativa de Tailscale.
+2. Seleccionar el dispositivo gw-tailscale.
+3. Acceder a la configuración de rutas anunciadas.
+4. Aprobar la subred 172.16.0.0/24.
+5. Autorizar los dispositivos que tendrán acceso
+   a la infraestructura del proyecto.
+
+### 8.6. Documentación complementaria
+
+- [README de Tailscale](tailscale/README.md)
+- [Configuración del gateway](tailscale/configuracion.md)
+- [Script de instalación](tailscale/instalacion.sh)
+- [Configuración Netplan](tailscale/configuraciones/netplan.yaml)
+- [IP Forwarding](tailscale/configuraciones/99-tailscale.conf)
+- [Configuración de enrutamiento](tailscale/configuraciones/enrutamiento.sh)
+
+La implementación fue realizada utilizando
+Tailscale versión 1.104.6.
+
+Por seguridad, no se incluyen credenciales,
+llaves de autenticación ni archivos privados
+de Tailscale dentro del repositorio.
