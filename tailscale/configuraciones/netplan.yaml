@@ -1,0 +1,14 @@
+
+# Configuracion de red del gateway Tailscale
+# Proyecto SDN-DMVPN Dual Hub
+
+network:
+  version: 2
+  ethernets:
+    ens33:
+      dhcp4: true
+      dhcp6: true
+    ens34:
+      accept-ra: true
+      addresses:
+        - 172.16.0.10/24
