@@ -1,0 +1,32 @@
+crypto ikev2 proposal DMVPN-PROP
+ encryption aes-cbc-256
+ integrity sha256
+ group 14
+!
+crypto ikev2 policy DMVPN-POL
+ match fvrf any
+ proposal DMVPN-PROP
+!
+crypto ikev2 keyring DMVPN-KR
+{% for peer in peers_ipsec %}
+ peer {{ peer.nombre }}
+  address {{ peer.ip }}
+  pre-shared-key {{ dmvpn_psk }}
+ !
+{% endfor %}
+!
+crypto ikev2 profile DMVPN-IKEV2
+{% for peer in peers_ipsec %}
+ match identity remote address {{ peer.ip }} 255.255.255.255
+{% endfor %}
+ authentication remote pre-share
+ authentication local pre-share
+ keyring local DMVPN-KR
+!
+crypto ipsec transform-set DMVPN-TRANS esp-aes 256 esp-sha-hmac
+ mode transport
+!
+crypto ipsec profile DMVPN-IPSEC
+ set transform-set DMVPN-TRANS
+ set ikev2-profile DMVPN-IKEV2
+!

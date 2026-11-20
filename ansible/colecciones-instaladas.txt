@@ -1,0 +1,7 @@
+
+# /home/serverl/.ansible/collections/ansible_collections
+Collection        Version
+----------------- -------
+ansible.netcommon 8.8.0  
+ansible.utils     6.1.1  
+cisco.ios         11.7.1 

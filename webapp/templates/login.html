@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDN Manager - Acceso</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .login {
+            width: 420px;
+            max-width: 95%;
+            padding: 35px;
+        }
+        .login h1 {
+            color: #38bdf8;
+            text-align: center;
+        }
+        .login p {
+            color: #94a3b8;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0 20px;
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 7px;
+            color: white;
+        }
+        button {
+            width: 100%;
+            cursor: pointer;
+        }
+        .error {
+            color: #f87171 !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card login">
+    <h1>SDN Manager</h1>
+    <p>Network Automation Platform</p>
+    <hr>
+
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <label>Usuario</label>
+        <input type="text" name="username"
+               autocomplete="username" required autofocus>
+
+        <label>Contraseña</label>
+        <input type="password" name="password"
+               autocomplete="current-password" required>
+
+        <button class="primary" type="submit">
+            Iniciar sesión
+        </button>
+    </form>
+
+    <p>Proyecto Software Defined Networks</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,18 @@
+---
+- name: Respaldo de configuraciones SDN
+  hosts: routers_sdn
+  gather_facts: false
+
+  tasks:
+    - name: Respaldar running-config
+      cisco.ios.ios_config:
+        backup: true
+        backup_options:
+          filename: "{{ inventory_hostname }}_running-config.cfg"
+          dir_path: "{{ playbook_dir }}/../backups"
+      register: resultado
+      no_log: true
+
+    - name: Mostrar resultado del respaldo
+      ansible.builtin.debug:
+        msg: "Respaldo de {{ inventory_hostname }} completado."

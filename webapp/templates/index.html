@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDN Network Manager</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+    <h2>SDN Manager</h2>
+    <p>Network Automation</p>
+    <hr>
+    <a href="/">Dashboard</a>
+    <a href="#sucursales">Sucursales</a>
+    <a href="#operaciones">Automatización</a>
+    <a href="http://100.76.25.51/zabbix/" target="_blank" rel="noopener">Zabbix</a>
+
+<hr>
+<form action="/logout" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button class="secondary" type="submit" style="width:100%;cursor:pointer;">
+        Cerrar sesión
+    </button>
+</form>
+
+</aside>
+
+<main>
+    <header>
+        <div>
+            <h1>SDN Network Manager</h1>
+            <p>Administración centralizada de infraestructura</p>
+        </div>
+        <span class="tag">Controlador Ansible</span>
+    </header>
+
+    <section class="metrics">
+        <div class="card">
+            <p>Routers registrados</p>
+            <h2>7</h2>
+        </div>
+        <div class="card">
+            <p>Hubs</p>
+            <h2>2</h2>
+        </div>
+        <div class="card">
+            <p>Sucursales activas</p>
+            <h2 class="green">4</h2>
+        </div>
+        <div class="card">
+            <p>Sucursales inactivas</p>
+            <h2 class="orange">1</h2>
+        </div>
+    </section>
+
+    <section class="card" id="sucursales">
+        <h2>Inventario de infraestructura</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Router</th>
+                    <th>Ubicación</th>
+                    <th>Dirección IP</th>
+                    <th>Tipo</th>
+                    <th>Estado registrado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for id, name, tipo in [
+                    (1, 'Guatemala', 'Hub primario'),
+                    (2, 'Guatemala', 'Hub secundario'),
+                    (3, 'Mazatenango', 'Spoke'),
+                    (4, 'Suchitepéquez', 'Spoke'),
+                    (5, 'Zacapa', 'Spoke'),
+                    (6, 'Retalhuleu', 'Spoke'),
+                    (7, 'Nueva sede', 'Spoke')
+                ] %}
+                <tr>
+                    <td>R{{ id }}</td>
+                    <td>{{ name }}</td>
+                    <td>172.16.0.{{ id }}</td>
+                    <td>{{ tipo }}</td>
+                    <td>
+                        {% if id == 7 %}
+                        <span class="inactive">INACTIVO</span>
+                        {% else %}
+                        <span class="active">ACTIVO</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card" id="operaciones">
+        <h2>Administración de sucursales</h2>
+
+        <label>Sucursal seleccionada</label>
+        <select>
+            <option>R7 - Nueva sede</option>
+        </select>
+
+        <div class="details">
+            <p>Underlay: 172.16.0.7</p>
+            <p>LAN IPv4: 10.31.0.0/24</p>
+            <p>LAN IPv6: 2001:824:7::/64</p>
+            <p>AS BGP: 65000</p>
+        </div>
+
+        
+<form id="operationForm">
+
+    <input type="hidden" name="csrf_token"
+           value="{{ csrf_token }}">
+
+    <div class="credentials">
+        <div>
+            <label>Contraseña SSH de los routers</label>
+            <input type="password" id="ssh_password"
+                   autocomplete="off"
+                   placeholder="Contraseña del usuario admin">
+        </div>
+
+        <div>
+            <label>Contraseña Ansible Vault</label>
+            <input type="password" id="vault_password"
+                   autocomplete="off"
+                   placeholder="Necesaria para el alta">
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button type="button" class="success"
+                onclick="ejecutar('alta')">
+            + Alta de sucursal
+        </button>
+
+        <button type="button" class="danger"
+                onclick="ejecutar('baja')">
+            - Baja de sucursal
+        </button>
+
+        <button type="button" class="primary"
+                onclick="ejecutar('simular_alta')">
+            Simular alta
+        </button>
+
+        <button type="button" class="primary"
+                onclick="ejecutar('simular_baja')">
+            Simular baja
+        </button>
+
+        <button type="button" class="primary"
+                onclick="ejecutar('validar')">
+            Validar conexión
+        </button>
+
+        <button type="button" class="secondary"
+                onclick="ejecutar('backup')">
+            Respaldar routers
+        </button>
+
+        <button type="button" class="secondary"
+                onclick="ejecutar('guardar')">
+            Guardar configuración
+        </button>
+    </div>
+
+    <p id="operationStatus">Sistema listo.</p>
+
+</form>
+
+    </section>
+
+    <section class="card">
+        <h2>Consola de ejecución</h2>
+        <pre class="console" id="consoleOutput">SDN Network Manager iniciado.
+Inventario: R1 - R7
+Controlador: Ansible
+Estado: Listo para ejecutar operaciones.</pre>
+    </section>
+
+    <footer>SDN Network Manager | Proyecto Software Defined Networks</footer>
+</main>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

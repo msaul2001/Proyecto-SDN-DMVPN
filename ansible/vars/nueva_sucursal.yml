@@ -1,0 +1,41 @@
+---
+sucursal_id: 7
+sucursal_nombre: NuevaSede
+sucursal_hostname: R7
+
+bgp_as: 65000
+
+underlay_ip: 172.16.0.7
+underlay_mask: 255.255.255.0
+
+loopback_ip: 10.254.0.7
+
+lan_ipv4: 10.31.0.1
+lan_network: 10.31.0.0
+lan_mask: 255.255.255.0
+
+lan_ipv6: "2001:824:7::1/64"
+lan_ipv6_network: "2001:824:7::/64"
+
+tunnel0_ipv4: 10.255.1.7
+tunnel1_ipv4: 10.255.2.7
+
+tunnel0_ipv6: "2001:824:101::7/64"
+tunnel1_ipv6: "2001:824:102::7/64"
+
+tunnel0_link_local: "FE80::101:7"
+tunnel1_link_local: "FE80::102:7"
+
+peers_ipsec:
+  - nombre: HUB1
+    ip: 172.16.0.1
+  - nombre: HUB2
+    ip: 172.16.0.2
+  - nombre: SPOKE-R3
+    ip: 172.16.0.3
+  - nombre: SPOKE-R4
+    ip: 172.16.0.4
+  - nombre: SPOKE-R5
+    ip: 172.16.0.5
+  - nombre: SPOKE-R6
+    ip: 172.16.0.6

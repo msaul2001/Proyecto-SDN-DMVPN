@@ -1,0 +1,94 @@
+---
+- name: Validar sucursal a eliminar
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  any_errors_fatal: true
+  vars_files:
+    - ../vars/nueva_sucursal.yml
+
+  tasks:
+    - name: Validar que solamente se elimine R7
+      ansible.builtin.assert:
+        that:
+          - sucursal_id | int == 7
+          - sucursal_hostname == 'R7'
+          - underlay_ip == '172.16.0.7'
+          - "'R7' in groups['all']"
+        fail_msg: "Operacion cancelada. Revisar sucursal."
+
+- name: Desactivar servicios SDN de R7
+  hosts: R7
+  gather_facts: false
+  any_errors_fatal: true
+
+  tasks:
+    - name: Eliminar BGP y tuneles DMVPN
+      cisco.ios.ios_config:
+        lines:
+          - no router bgp 65000
+          - no interface Tunnel0
+          - no interface Tunnel1
+          - no interface Loopback0
+
+    - name: Desactivar interfaz LAN
+      cisco.ios.ios_config:
+        parents:
+          - interface Ethernet0/1
+        lines:
+          - shutdown
+          - no ip address
+          - no ipv6 address 2001:824:7::1/64
+          - no description
+
+    - name: Eliminar configuracion IPsec
+      cisco.ios.ios_config:
+        lines:
+          - no crypto ipsec profile DMVPN-IPSEC
+          - no crypto ipsec transform-set DMVPN-TRANS
+          - no crypto ikev2 profile DMVPN-IKEV2
+          - no crypto ikev2 keyring DMVPN-KR
+          - no crypto ikev2 policy DMVPN-POL
+          - no crypto ikev2 proposal DMVPN-PROP
+
+- name: Eliminar R7 de los hubs
+  hosts: hubs
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  vars_files:
+    - ../vars/nueva_sucursal.yml
+
+  vars:
+    vecino_ipv6: "{{ (tunnel0_ipv6 if inventory_hostname == 'R1' else tunnel1_ipv6).split('/')[0] }}"
+
+  tasks:
+    - name: Eliminar vecino BGP IPv6
+      cisco.ios.ios_config:
+        parents:
+          - router bgp 65000
+        lines:
+          - "no neighbor {{ vecino_ipv6 }}"
+
+- name: Eliminar peer R7 de sucursales existentes
+  hosts: "R3:R4:R5:R6"
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  vars_files:
+    - ../vars/nueva_sucursal.yml
+
+  tasks:
+    - name: Eliminar identidad remota R7
+      cisco.ios.ios_config:
+        parents:
+          - crypto ikev2 profile DMVPN-IKEV2
+        lines:
+          - "no match identity remote address {{ underlay_ip }} 255.255.255.255"
+
+    - name: Eliminar peer del keyring
+      cisco.ios.ios_config:
+        parents:
+          - crypto ikev2 keyring DMVPN-KR
+        lines:
+          - "no peer SPOKE-{{ sucursal_hostname }}"

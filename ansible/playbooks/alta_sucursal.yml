@@ -1,0 +1,103 @@
+---
+- name: Validar nueva sucursal
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - ../vars/nueva_sucursal.yml
+    - ../vars/vault.yml
+
+  tasks:
+    - name: Validar parametros de R7
+      ansible.builtin.assert:
+        that:
+          - sucursal_id | int == 7
+          - sucursal_hostname == 'R7'
+          - underlay_ip == '172.16.0.7'
+          - "'R7' in groups['all']"
+          - dmvpn_psk | length > 0
+          - dmvpn_psk != 'CLAVE_IPSEC_REAL'
+        fail_msg: "Revisar variables e inventario."
+      no_log: true
+
+- name: Configurar nueva sucursal
+  hosts: R7
+  gather_facts: false
+  any_errors_fatal: true
+  vars_files:
+    - ../vars/nueva_sucursal.yml
+    - ../vars/vault.yml
+
+  tasks:
+    - name: Configurar IKEv2 e IPsec
+      cisco.ios.ios_config:
+        content: "{{ lookup('ansible.builtin.template', '../templates/spoke_ipsec.cfg.j2') }}"
+      no_log: true
+
+    - name: Configurar interfaces DMVPN y BGP
+      cisco.ios.ios_config:
+        content: "{{ lookup('ansible.builtin.template', '../templates/spoke_base.cfg.j2') }}"
+
+- name: Actualizar peers en sucursales existentes
+  hosts: "R3:R4:R5:R6"
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  vars_files:
+    - ../vars/nueva_sucursal.yml
+    - ../vars/vault.yml
+
+  tasks:
+    - name: Agregar peer IKEv2 R7
+      cisco.ios.ios_config:
+        parents:
+          - crypto ikev2 keyring DMVPN-KR
+          - "peer SPOKE-{{ sucursal_hostname }}"
+        lines:
+          - "address {{ underlay_ip }}"
+          - "pre-shared-key {{ dmvpn_psk }}"
+      no_log: true
+
+    - name: Autorizar identidad remota R7
+      cisco.ios.ios_config:
+        parents:
+          - crypto ikev2 profile DMVPN-IKEV2
+        lines:
+          - "match identity remote address {{ underlay_ip }} 255.255.255.255"
+
+- name: Actualizar BGP IPv6 en los hubs
+  hosts: hubs
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  vars_files:
+    - ../vars/nueva_sucursal.yml
+
+  vars:
+    vecino_ipv6: "{{ (tunnel0_ipv6 if inventory_hostname == 'R1' else tunnel1_ipv6).split('/')[0] }}"
+
+  tasks:
+    - name: Crear vecino BGP IPv6
+      cisco.ios.ios_config:
+        parents:
+          - "router bgp {{ bgp_as }}"
+        lines:
+          - "neighbor {{ vecino_ipv6 }} remote-as {{ bgp_as }}"
+          - "neighbor {{ vecino_ipv6 }} timers 10 30"
+
+    - name: Desactivar vecino en familia IPv4
+      cisco.ios.ios_config:
+        parents:
+          - "router bgp {{ bgp_as }}"
+          - address-family ipv4
+        lines:
+          - "no neighbor {{ vecino_ipv6 }} activate"
+
+    - name: Activar vecino IPv6 como cliente RR
+      cisco.ios.ios_config:
+        parents:
+          - "router bgp {{ bgp_as }}"
+          - address-family ipv6
+        lines:
+          - "neighbor {{ vecino_ipv6 }} activate"
+          - "neighbor {{ vecino_ipv6 }} route-reflector-client"

@@ -1,0 +1,31 @@
+# Entornos virtuales
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Credenciales
+auth.json
+vault.yml
+.vault_pass
+.env
+.env.*
+*.pem
+*.key
+
+# Respaldos y registros
+backups/
+logs/
+*.bak
+*.log
+
+# Imagenes de sistemas
+*.iso
+*.qcow2
+*.vmdk
+*.bin
+*.iourc
+
+# Archivos temporales
+*.tmp
+*.swp

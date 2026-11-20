@@ -1,0 +1,84 @@
+hostname {{ sucursal_hostname }}
+ip domain name sdn.lab
+ip cef
+ipv6 unicast-routing
+ipv6 cef
+!
+interface Loopback0
+ description LOOPBACK_{{ sucursal_hostname }}
+ ip address {{ loopback_ip }} 255.255.255.255
+!
+interface Ethernet0/1
+ description LAN_{{ sucursal_nombre }}
+ ip address {{ lan_ipv4 }} {{ lan_mask }}
+ ipv6 address {{ lan_ipv6 }}
+ no shutdown
+!
+interface Tunnel0
+ description DMVPN_SPOKE_HUB1
+ ip address {{ tunnel0_ipv4 }} 255.255.255.0
+ no ip redirects
+ ip nhrp map 10.255.1.1 172.16.0.1
+ ip nhrp map multicast 172.16.0.1
+ ip nhrp network-id 101
+ ip nhrp nhs 10.255.1.1
+ ipv6 address {{ tunnel0_link_local }} link-local
+ ipv6 address {{ tunnel0_ipv6 }}
+ ipv6 nhrp map 2001:824:101::1/128 172.16.0.1
+ ipv6 nhrp map multicast 172.16.0.1
+ ipv6 nhrp network-id 201
+ ipv6 nhrp nhs 2001:824:101::1
+ tunnel source Ethernet0/0
+ tunnel mode gre multipoint
+ tunnel key 101
+ tunnel protection ipsec profile DMVPN-IPSEC shared
+ no shutdown
+!
+interface Tunnel1
+ description DMVPN_SPOKE_HUB2
+ ip address {{ tunnel1_ipv4 }} 255.255.255.0
+ no ip redirects
+ ip nhrp map 10.255.2.2 172.16.0.2
+ ip nhrp map multicast 172.16.0.2
+ ip nhrp network-id 102
+ ip nhrp nhs 10.255.2.2
+ ipv6 address {{ tunnel1_link_local }} link-local
+ ipv6 address {{ tunnel1_ipv6 }}
+ ipv6 nhrp map 2001:824:102::2/128 172.16.0.2
+ ipv6 nhrp map multicast 172.16.0.2
+ ipv6 nhrp network-id 202
+ ipv6 nhrp nhs 2001:824:102::2
+ tunnel source Ethernet0/0
+ tunnel mode gre multipoint
+ tunnel key 102
+ tunnel protection ipsec profile DMVPN-IPSEC shared
+ no shutdown
+!
+router bgp {{ bgp_as }}
+ bgp router-id {{ loopback_ip }}
+ bgp log-neighbor-changes
+ neighbor 10.255.1.1 remote-as {{ bgp_as }}
+ neighbor 10.255.1.1 update-source Tunnel0
+ neighbor 10.255.1.1 timers 10 30
+ neighbor 10.255.2.2 remote-as {{ bgp_as }}
+ neighbor 10.255.2.2 update-source Tunnel1
+ neighbor 10.255.2.2 timers 10 30
+ neighbor 2001:824:101::1 remote-as {{ bgp_as }}
+ neighbor 2001:824:101::1 timers 10 30
+ neighbor 2001:824:102::2 remote-as {{ bgp_as }}
+ neighbor 2001:824:102::2 timers 10 30
+ !
+ address-family ipv4
+  network {{ lan_network }} mask {{ lan_mask }}
+  neighbor 10.255.1.1 activate
+  neighbor 10.255.2.2 activate
+  no neighbor 2001:824:101::1 activate
+  no neighbor 2001:824:102::2 activate
+ exit-address-family
+ !
+ address-family ipv6
+  network {{ lan_ipv6_network }}
+  neighbor 2001:824:101::1 activate
+  neighbor 2001:824:102::2 activate
+ exit-address-family
+!

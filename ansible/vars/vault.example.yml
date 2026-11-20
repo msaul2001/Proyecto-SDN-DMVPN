@@ -1,0 +1,4 @@
+---
+# Archivo de ejemplo.
+# Crear vault.yml y cifrarlo mediante Ansible Vault.
+dmvpn_psk: "REEMPLAZAR_CON_CLAVE_IPSEC"

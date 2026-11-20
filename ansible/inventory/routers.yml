@@ -1,0 +1,23 @@
+---
+all:
+  children:
+    routers_sdn:
+      children:
+        hubs:
+          hosts:
+            R1:
+              ansible_host: 172.16.0.1
+            R2:
+              ansible_host: 172.16.0.2
+        spokes:
+          hosts:
+            R3:
+              ansible_host: 172.16.0.3
+            R4:
+              ansible_host: 172.16.0.4
+            R5:
+              ansible_host: 172.16.0.5
+            R6:
+              ansible_host: 172.16.0.6
+            R7:
+              ansible_host: 172.16.0.7
